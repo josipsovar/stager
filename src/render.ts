@@ -48,7 +48,8 @@ ${CSS}
 <body>
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand">${titleHtml}</div>
+    <div class="brand">Stager</div>
+    <div id="custName" class="cust-name" contenteditable="true" spellcheck="false" title="Click to edit the client name" hidden></div>
     <nav id="tabs" class="tabs" role="tablist" aria-label="People"></nav>
   </div>
 </header>
@@ -72,10 +73,17 @@ ${CSS}
 
 <template id="postCardTpl">
   <article class="card-wrap">
+    <div class="variant" hidden></div>
     <div class="live-badge" hidden></div>
     <div class="li-card">
       <div class="li-head">
-        <div class="avatar"></div>
+        <div class="avatar-wrap">
+          <div class="avatar"></div>
+          <button type="button" class="avatar-edit" title="Change photo" aria-label="Change photo">
+            <svg viewBox="0 0 20 20"><path d="M6.5 4h7l1 2H16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1.5l1-2zM10 8a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path></svg>
+          </button>
+          <input type="file" accept="image/*" class="avatar-file" hidden>
+        </div>
         <div class="who">
           <div class="name"></div>
           <div class="headline"></div>
@@ -207,6 +215,73 @@ ${CSS}
     writeOverlay(overlay);
   }
 
+  // ---- in-browser edits (client name / avatar / post text; persisted per-browser) ---------
+  //
+  // Click-to-edit changes here are NOT written back to the data file — they live in this
+  // browser's localStorage only, layered on top of the baked-in data at render time. Useful for
+  // fine-tuning copy or swapping a headshot without a rebuild; not a substitute for updating the
+  // source JSON if the change should ship to everyone who opens this file.
+
+  function editsKey() { return "stager-edits-overlay"; }
+
+  function readEdits() {
+    try {
+      return JSON.parse(localStorage.getItem(editsKey()) || "{}");
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function writeEdits(edits) {
+    try {
+      localStorage.setItem(editsKey(), JSON.stringify(edits));
+    } catch (e) {}
+  }
+
+  function setCustomerNameOverride(customerId, name) {
+    var edits = readEdits();
+    edits.customerNames = edits.customerNames || {};
+    edits.customerNames[customerId] = name;
+    writeEdits(edits);
+  }
+
+  function effectiveCustomerName(customer) {
+    var edits = readEdits();
+    return (edits.customerNames && edits.customerNames[customer.id]) || customer.name;
+  }
+
+  function setAvatarOverride(personId, dataUrl) {
+    var edits = readEdits();
+    edits.avatars = edits.avatars || {};
+    edits.avatars[personId] = dataUrl;
+    writeEdits(edits);
+  }
+
+  function effectiveAvatarSrc(person) {
+    var edits = readEdits();
+    return (edits.avatars && edits.avatars[person.id]) || person.avatar;
+  }
+
+  function setPostFieldOverride(postId, field, value) {
+    var edits = readEdits();
+    edits.posts = edits.posts || {};
+    edits.posts[postId] = edits.posts[postId] || {};
+    edits.posts[postId][field] = value;
+    writeEdits(edits);
+  }
+
+  function effectivePostBodyBase(post) {
+    var edits = readEdits();
+    var o = edits.posts && edits.posts[post.id];
+    return o && typeof o.body === "string" ? o.body : post.body;
+  }
+
+  function effectivePostComment(post) {
+    var edits = readEdits();
+    var o = edits.posts && edits.posts[post.id];
+    return o && typeof o.firstComment === "string" ? o.firstComment : post.firstComment || "";
+  }
+
   // ---- formatting -----------------------------------------------------
 
   function formatDate(iso) {
@@ -239,15 +314,31 @@ ${CSS}
       .join("");
   }
 
-  function fillAvatar(el, person) {
+  function fillAvatar(el, person, srcOverride) {
     el.innerHTML = "";
-    if (person.avatar) {
+    var src = srcOverride || person.avatar;
+    if (src) {
       var img = document.createElement("img");
-      img.src = person.avatar;
+      img.src = src;
       img.alt = person.name;
       el.appendChild(img);
     } else {
       el.textContent = initials(person.name);
+    }
+  }
+
+  // Updates every visible avatar for this person (they can appear on more than one card at
+  // once) right after a photo is picked, without waiting for the next full render().
+  function applyAvatarToDom(personId, dataUrl, personName) {
+    var wraps = document.querySelectorAll(".avatar-wrap");
+    for (var i = 0; i < wraps.length; i++) {
+      if (wraps[i].dataset.personId !== personId) continue;
+      var el = wraps[i].querySelector(".avatar");
+      el.innerHTML = "";
+      var img = document.createElement("img");
+      img.src = dataUrl;
+      img.alt = personName || "";
+      el.appendChild(img);
     }
   }
 
@@ -298,6 +389,58 @@ ${CSS}
     if (btn) flash(btn, "Downloaded");
   }
 
+  // ---- click-to-edit post text (body keeps its "…see more" truncation; expands on focus) ----
+
+  function setupEditableBody(bodyEl, seeMoreBtn, fullText, onSave) {
+    bodyEl.contentEditable = "true";
+    bodyEl.spellcheck = false;
+    bodyEl.dataset.full = fullText;
+
+    function showTruncated() {
+      var full = bodyEl.dataset.full;
+      var truncated = truncateBody(full);
+      bodyEl.textContent = truncated || full;
+      seeMoreBtn.hidden = !truncated;
+    }
+    function showFull() {
+      bodyEl.textContent = bodyEl.dataset.full;
+      seeMoreBtn.hidden = true;
+    }
+    function placeCaretAtEnd() {
+      var range = document.createRange();
+      range.selectNodeContents(bodyEl);
+      range.collapse(false);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    seeMoreBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      showFull();
+      bodyEl.focus();
+      placeCaretAtEnd();
+    });
+    bodyEl.addEventListener("focus", showFull);
+    bodyEl.addEventListener("blur", function () {
+      var text = bodyEl.innerText.replace(/\\u00a0/g, " ").replace(/\\n{3,}/g, "\\n\\n");
+      bodyEl.dataset.full = text;
+      onSave(text);
+      showTruncated();
+    });
+
+    showTruncated();
+  }
+
+  function setupEditableComment(commentEl, initialText, onSave) {
+    commentEl.contentEditable = "true";
+    commentEl.spellcheck = false;
+    commentEl.textContent = initialText;
+    commentEl.addEventListener("blur", function () {
+      onSave(commentEl.innerText.replace(/\\u00a0/g, " "));
+    });
+  }
+
   // ---- card rendering ---------------------------------------------------
 
   var tpl = document.getElementById("postCardTpl");
@@ -313,7 +456,29 @@ ${CSS}
     var node = tpl.content.firstElementChild.cloneNode(true);
     var story = storyIndex[post.storySlug];
 
-    fillAvatar(node.querySelector(".avatar"), person);
+    var variantEl = node.querySelector(".variant");
+    if (post.angle) {
+      variantEl.hidden = false;
+      variantEl.textContent = post.angle;
+    }
+
+    var avatarWrap = node.querySelector(".avatar-wrap");
+    avatarWrap.dataset.personId = person.id;
+    fillAvatar(avatarWrap.querySelector(".avatar"), person, effectiveAvatarSrc(person));
+    var avatarFile = avatarWrap.querySelector(".avatar-file");
+    avatarWrap.querySelector(".avatar-edit").addEventListener("click", function () {
+      avatarFile.click();
+    });
+    avatarFile.addEventListener("change", function () {
+      var file = avatarFile.files && avatarFile.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        setAvatarOverride(person.id, reader.result);
+        applyAvatarToDom(person.id, reader.result, person.name);
+      };
+      reader.readAsDataURL(file);
+    });
     node.querySelector(".name").textContent = person.name;
     node.querySelector(".headline").textContent = person.title || "";
 
@@ -332,18 +497,12 @@ ${CSS}
       node.style.display = "none";
     }
 
-    var bodyText = withReadCta(post.body, story);
     var bodyEl = node.querySelector(".body");
     var seeMoreBtn = node.querySelector(".see-more");
-    var truncated = truncateBody(bodyText);
-    bodyEl.textContent = truncated || bodyText;
-    if (truncated) {
-      seeMoreBtn.hidden = false;
-      seeMoreBtn.addEventListener("click", function () {
-        bodyEl.textContent = bodyText;
-        seeMoreBtn.hidden = true;
-      });
-    }
+    var initialBodyText = withReadCta(effectivePostBodyBase(post), story);
+    setupEditableBody(bodyEl, seeMoreBtn, initialBodyText, function (text) {
+      setPostFieldOverride(post.id, "body", text);
+    });
 
     if (story && story.image) {
       var preview = node.querySelector(".preview");
@@ -356,19 +515,21 @@ ${CSS}
     }
 
     node.querySelector(".copy-post").addEventListener("click", function (e) {
-      copyText(bodyText, e.currentTarget, "Post copied");
+      copyText(bodyEl.dataset.full, e.currentTarget, "Post copied");
     });
 
     // First comment field always renders (even empty) so it's visible as a
     // slot to fill in — post copy is never invented on the customer's behalf.
     var commentBlock = node.querySelector(".comment-block");
     var commentBtn = node.querySelector(".copy-comment");
-    var commentText = post.firstComment || "";
+    var commentEl = commentBlock.querySelector(".comment");
     commentBlock.hidden = false;
-    commentBlock.querySelector(".comment").textContent = commentText;
+    setupEditableComment(commentEl, effectivePostComment(post), function (text) {
+      setPostFieldOverride(post.id, "firstComment", text);
+    });
     commentBtn.hidden = false;
     commentBtn.addEventListener("click", function (e) {
-      copyText(commentText, e.currentTarget, "Comment copied");
+      copyText(commentEl.innerText, e.currentTarget, "Comment copied");
     });
 
     var downloadBtn = node.querySelector(".download-img");
@@ -416,6 +577,13 @@ ${CSS}
   var tabsEl = document.getElementById("tabs");
   var customerSelect = document.getElementById("customerSelect");
   var customerFilterWrap = document.getElementById("customerFilterWrap");
+  var custNameEl = document.getElementById("custName");
+
+  custNameEl.addEventListener("blur", function () {
+    var id = custNameEl.dataset.customerId;
+    var name = custNameEl.textContent.trim();
+    if (id && name) setCustomerNameOverride(id, name);
+  });
 
   if (MODE === "admin" && STAGER_DATA.customers.length > 1) {
     customerFilterWrap.hidden = false;
@@ -513,6 +681,9 @@ ${CSS}
       return;
     }
     if (MODE === "admin" && STAGER_DATA.customers.length > 1) customerSelect.value = customer.id;
+    custNameEl.hidden = false;
+    custNameEl.dataset.customerId = customer.id;
+    if (document.activeElement !== custNameEl) custNameEl.textContent = effectiveCustomerName(customer);
     var personId = currentPersonId(customer);
     renderTabs(customer, personId);
     populateStorySelect(customer, personId);
@@ -584,9 +755,29 @@ body {
 
 .brand {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 13px;
+  letter-spacing: .02em;
   color: var(--li-blue);
   white-space: nowrap;
+}
+
+.cust-name {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+  white-space: nowrap;
+  border-radius: 5px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  cursor: text;
+}
+
+.cust-name:hover { background: #eaf2fc; }
+
+.cust-name:focus {
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, .3);
 }
 
 .tabs {
@@ -669,6 +860,17 @@ body {
   gap: 10px;
 }
 
+.variant {
+  align-self: flex-start;
+  font: 700 10.5px/1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #5b34d6;
+  background: #efe9ff;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
 /* ---- the LinkedIn-look-alike post card itself ---- */
 
 .li-card {
@@ -685,6 +887,11 @@ body {
   gap: 8px;
 }
 
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .avatar {
   width: 48px;
   height: 48px;
@@ -697,13 +904,43 @@ body {
   font-weight: 700;
   font-size: 15px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.avatar-edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--li-blue);
+  color: #fff;
+  border: 2px solid var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .12s;
+}
+
+.avatar-wrap:hover .avatar-edit,
+.avatar-wrap:focus-within .avatar-edit {
+  opacity: 1;
+}
+
+.avatar-edit svg {
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+  display: block;
 }
 
 .who { flex: 1; min-width: 0; padding-top: 1px; }
@@ -764,6 +1001,16 @@ body {
   line-height: 1.4;
   min-height: 1.4em;
   color: var(--ink);
+  border-radius: 4px;
+  cursor: text;
+}
+
+.body:hover { background: #fafafa; }
+
+.body:focus {
+  background: #fbfdff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, .25);
 }
 
 .body:empty::before {
@@ -878,6 +1125,16 @@ body {
   white-space: pre-wrap;
   font-size: 13.5px;
   min-height: 1.3em;
+  border-radius: 4px;
+  cursor: text;
+}
+
+.comment:hover { background: #f3f4f5; }
+
+.comment:focus {
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, .25);
 }
 
 .comment:empty::before {

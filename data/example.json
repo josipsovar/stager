@@ -27,16 +27,16 @@
     }
   ],
   "posts": [
-    { "id": "jane-doe-1", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "body": "", "firstComment": "" },
-    { "id": "jane-doe-2", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "body": "", "firstComment": "" },
-    { "id": "jane-doe-3", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "body": "", "firstComment": "" },
+    { "id": "jane-doe-1", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "angle": "Primary", "body": "", "firstComment": "" },
+    { "id": "jane-doe-2", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "angle": "Personal angle", "body": "", "firstComment": "" },
+    { "id": "jane-doe-3", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "angle": "Data-driven", "body": "", "firstComment": "" },
 
-    { "id": "sam-lee-1", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "body": "", "firstComment": "" },
-    { "id": "sam-lee-2", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "body": "", "firstComment": "" },
-    { "id": "sam-lee-3", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "body": "", "firstComment": "" },
+    { "id": "sam-lee-1", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "angle": "Primary", "body": "", "firstComment": "" },
+    { "id": "sam-lee-2", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "angle": "Personal angle", "body": "", "firstComment": "" },
+    { "id": "sam-lee-3", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "angle": "Data-driven", "body": "", "firstComment": "" },
 
-    { "id": "priya-nair-1", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "body": "", "firstComment": "" },
-    { "id": "priya-nair-2", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "body": "", "firstComment": "" },
-    { "id": "priya-nair-3", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "body": "", "firstComment": "" }
+    { "id": "priya-nair-1", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "angle": "Primary", "body": "", "firstComment": "" },
+    { "id": "priya-nair-2", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "angle": "Personal angle", "body": "", "firstComment": "" },
+    { "id": "priya-nair-3", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "angle": "Data-driven", "body": "", "firstComment": "" }
   ]
 }

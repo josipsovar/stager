@@ -41,6 +41,12 @@ export interface Post {
   /** Maps to the `commentary` field of LinkedIn's Posts API if this is ever wired up for direct publishing. */
   body: string;
   firstComment?: string;
+  /**
+   * Short label shown as a small pill on the card when a person has more than one post staged
+   * for the same story (e.g. "Primary", "Personal angle", "Data-driven") — lets you author several
+   * versions to choose between without them being mistaken for duplicates.
+   */
+  angle?: string;
   /** Defaults to true. Set false to hide from the customer-facing view without deleting it. */
   live?: boolean;
   /**
