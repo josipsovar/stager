@@ -71,32 +71,53 @@ ${CSS}
 </main>
 
 <template id="postCardTpl">
-  <article class="card">
-    <div class="card-head">
-      <div class="avatar"></div>
-      <div class="who">
-        <div class="name"></div>
-        <div class="title"></div>
+  <article class="card-wrap">
+    <div class="live-badge" hidden></div>
+    <div class="li-card">
+      <div class="li-head">
+        <div class="avatar"></div>
+        <div class="who">
+          <div class="name"></div>
+          <div class="headline"></div>
+          <div class="meta">
+            <span class="meta-preview">Preview</span>
+            <span class="meta-dot">·</span>
+            <span class="vis-icon" aria-hidden="true"></span>
+            <span class="vis-label"></span>
+          </div>
+        </div>
+        <button type="button" class="more-btn" tabindex="-1" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="16" height="16"><circle cx="2" cy="8" r="1.5"></circle><circle cx="8" cy="8" r="1.5"></circle><circle cx="14" cy="8" r="1.5"></circle></svg>
+        </button>
       </div>
-      <div class="live-badge" hidden></div>
-    </div>
-    <div class="body"></div>
-    <div class="preview" hidden>
-      <img alt="">
-      <div class="preview-meta">
-        <div class="pub"></div>
-        <div class="headline"></div>
+      <div class="li-body">
+        <div class="body"></div>
+        <button type="button" class="see-more" hidden>…see more</button>
       </div>
-    </div>
-    <div class="actions">
-      <button type="button" class="btn copy-post">Copy post</button>
-      <button type="button" class="btn copy-comment" hidden>Copy first comment</button>
-      <button type="button" class="btn download-img" hidden>Download image</button>
-      <button type="button" class="btn toggle-live" hidden></button>
+      <div class="preview" hidden>
+        <img alt="">
+        <div class="preview-meta">
+          <div class="headline"></div>
+          <div class="pub"></div>
+        </div>
+      </div>
+      <div class="li-reactions" aria-hidden="true">
+        <span class="react"><svg viewBox="0 0 24 24"><path d="M2 21h3V10H2v11zm19-10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L12.17 2 6.59 7.59C6.22 7.95 6 8.45 6 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L21 11z"></path></svg>Like</span>
+        <span class="react"><svg viewBox="0 0 24 24"><path d="M6 6h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path></svg>Comment</span>
+        <span class="react"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4V7H7a3 3 0 0 0-3 3v2H2v-2a5 5 0 0 1 5-5h10V2zM7 22l-4-4 4-4v3h10a3 3 0 0 0 3-3v-2h2v2a5 5 0 0 1-5 5H7v3z"></path></svg>Repost</span>
+        <span class="react"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"></path></svg>Send</span>
+      </div>
     </div>
     <div class="comment-block" hidden>
       <div class="comment-label">First comment</div>
       <div class="comment"></div>
+    </div>
+    <div class="actions">
+      <span class="actions-label">Staging tools</span>
+      <button type="button" class="btn copy-post">Copy post</button>
+      <button type="button" class="btn copy-comment" hidden>Copy first comment</button>
+      <button type="button" class="btn download-img" hidden>Download image</button>
+      <button type="button" class="btn toggle-live" hidden></button>
     </div>
   </article>
 </template>
@@ -197,6 +218,18 @@ ${CSS}
 
   function storyDateOf(story) { return formatDate(story && story.publishedAt); }
 
+  // Mimics LinkedIn's feed truncation: cut at a word boundary near ~250 chars
+  // (character-based, not line-based, so it never lands on a blank line and
+  // produces a stray ellipsis). Returns null when the text doesn't need it.
+  var BODY_TRUNCATE_AT = 250;
+  function truncateBody(text) {
+    if (text.length <= BODY_TRUNCATE_AT) return null;
+    var cut = text.slice(0, BODY_TRUNCATE_AT);
+    var lastSpace = cut.lastIndexOf(" ");
+    if (lastSpace > 100) cut = cut.slice(0, lastSpace);
+    return cut.replace(/\\s+$/, "") + "\\u2026";
+  }
+
   function initials(name) {
     return (name || "")
       .split(/\\s+/)
@@ -270,13 +303,23 @@ ${CSS}
   var tpl = document.getElementById("postCardTpl");
   var storyIndex = storiesBySlug();
 
+  var VISIBILITY_META = {
+    PUBLIC: { label: "Anyone", icon: '<svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM2.05 8.5h2.02c.07 1.2.28 2.32.6 3.24A5.53 5.53 0 012.05 8.5zm0-1a5.53 5.53 0 012.62-3.24c-.32.92-.53 2.04-.6 3.24H2.05zM8 2.02c.5.66 1.1 2.02 1.24 3.48H6.76C6.9 4.04 7.5 2.68 8 2.02zM6.6 6.5h2.8c.07.47.1.98.1 1.5s-.03 1.03-.1 1.5H6.6c-.07-.47-.1-.98-.1-1.5s.03-1.03.1-1.5zm.16 4h2.48c-.2.86-.6 1.7-1.24 2.48-.64-.78-1.04-1.62-1.24-2.48zm3.5 0h2.02a5.53 5.53 0 01-2.62 3.24c.32-.92.53-2.04.6-3.24zm0-1c-.07-1.2-.28-2.32-.6-3.24a5.53 5.53 0 012.62 3.24h-2.02z"></path></svg>' },
+    CONNECTIONS: { label: "Connections only", icon: '<svg viewBox="0 0 16 16"><path d="M5.5 7a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zm5 0a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM5.5 8c-1.93 0-4 1-4 3v2h5v-2c0-.79.27-1.5.73-2.06C6.65 8.32 6.1 8 5.5 8zm5 0c-.6 0-1.15.32-1.73.94.46.56.73 1.27.73 2.06v2h5v-2c0-2-2.07-3-4-3z"></path></svg>' },
+    LOGGED_IN: { label: "LinkedIn members only", icon: '<svg viewBox="0 0 16 16"><path d="M13.5 2h-11A1.5 1.5 0 001 3.5v9A1.5 1.5 0 002.5 14h11a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0013.5 2zM5 11.5H3V6.8h2v4.7zM4 6a1.15 1.15 0 110-2.3A1.15 1.15 0 014 6zm9 5.5h-2V9.1c0-.6-.2-1-.75-1-.4 0-.65.27-.75.54-.04.1-.05.24-.05.38v2.48h-2s.03-4 0-4.7h2v.67c.27-.42.75-1 1.8-1 1.3 0 2.25.85 2.25 2.68v3.35z"></path></svg>' }
+  };
+
   function postCard(post, person) {
     var node = tpl.content.firstElementChild.cloneNode(true);
     var story = storyIndex[post.storySlug];
 
     fillAvatar(node.querySelector(".avatar"), person);
     node.querySelector(".name").textContent = person.name;
-    node.querySelector(".title").textContent = person.title || "";
+    node.querySelector(".headline").textContent = person.title || "";
+
+    var vis = VISIBILITY_META[post.visibility] || VISIBILITY_META.PUBLIC;
+    node.querySelector(".vis-icon").innerHTML = vis.icon;
+    node.querySelector(".vis-label").textContent = vis.label;
 
     var live = effectiveLive(post);
     var badge = node.querySelector(".live-badge");
@@ -290,7 +333,17 @@ ${CSS}
     }
 
     var bodyText = withReadCta(post.body, story);
-    node.querySelector(".body").textContent = bodyText;
+    var bodyEl = node.querySelector(".body");
+    var seeMoreBtn = node.querySelector(".see-more");
+    var truncated = truncateBody(bodyText);
+    bodyEl.textContent = truncated || bodyText;
+    if (truncated) {
+      seeMoreBtn.hidden = false;
+      seeMoreBtn.addEventListener("click", function () {
+        bodyEl.textContent = bodyText;
+        seeMoreBtn.hidden = true;
+      });
+    }
 
     if (story && story.image) {
       var preview = node.querySelector(".preview");
@@ -298,8 +351,8 @@ ${CSS}
       var img = preview.querySelector("img");
       img.src = story.image;
       img.alt = story.headline;
-      preview.querySelector(".pub").textContent = publicationNameFor(story) + " \\u00b7 " + storyDateOf(story);
       preview.querySelector(".headline").textContent = story.headline;
+      preview.querySelector(".pub").textContent = publicationNameFor(story) + " \\u00b7 " + storyDateOf(story);
     }
 
     node.querySelector(".copy-post").addEventListener("click", function (e) {
@@ -502,6 +555,8 @@ const CSS = `
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--bg);
@@ -607,26 +662,32 @@ body {
   text-align: center;
 }
 
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 16px;
-  max-width: 526px;
+.card-wrap {
+  max-width: 542px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.card-head {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
 
+/* ---- the LinkedIn-look-alike post card itself ---- */
+
+.li-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px 4px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.02);
+}
+
+.li-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .avatar {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--li-blue);
   color: #fff;
@@ -634,7 +695,7 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -645,34 +706,64 @@ body {
   object-fit: cover;
 }
 
-.who { flex: 1; min-width: 0; }
+.who { flex: 1; min-width: 0; padding-top: 1px; }
 
 .name {
   font-weight: 600;
   font-size: 14px;
+  color: var(--ink);
 }
 
-.title {
+.headline {
   color: var(--muted);
   font-size: 12px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
-.live-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 1px;
 }
 
-.live-badge.live { background: #e9f7ef; color: var(--ok); }
-.live-badge.dead { background: #fdeceb; color: #b3261e; }
+.meta-dot { font-size: 10px; }
+
+.vis-icon svg {
+  width: 12px;
+  height: 12px;
+  fill: var(--muted);
+  display: block;
+}
+
+.more-btn {
+  border: none;
+  background: none;
+  color: var(--muted);
+  padding: 4px;
+  margin: -4px -4px 0 0;
+  border-radius: 50%;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.more-btn svg { fill: currentColor; display: block; }
+
+.li-body { margin-top: 8px; }
 
 .body {
   white-space: pre-wrap;
   font-size: 14px;
-  line-height: 1.5;
-  min-height: 1.5em;
+  line-height: 1.4;
+  min-height: 1.4em;
+  color: var(--ink);
 }
 
 .body:empty::before {
@@ -681,10 +772,23 @@ body {
   font-style: italic;
 }
 
+.see-more {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  padding: 2px 0 0;
+  cursor: pointer;
+}
+
+.see-more:hover { text-decoration: underline; }
+
 .preview {
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
+  margin-top: 10px;
 }
 
 .preview img {
@@ -698,25 +802,110 @@ body {
 .preview-meta {
   padding: 10px 12px;
   background: #f8fafc;
+  border-top: 1px solid var(--line);
+}
+
+.preview-meta .headline {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  -webkit-line-clamp: 2;
+  margin-bottom: 2px;
 }
 
 .pub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.li-reactions {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 4px 0 6px;
+  border-top: 1px solid var(--line);
+}
+
+.li-reactions .react {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 4px;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.li-reactions .react svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--muted);
+}
+
+/* ---- live badge (admin) ---- */
+
+.live-badge {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.live-badge.live { background: #e9f7ef; color: var(--ok); }
+.live-badge.dead { background: #fdeceb; color: #b3261e; }
+
+/* ---- first-comment slot ---- */
+
+.comment-block {
+  padding: 0 4px;
+}
+
+.comment-label {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: .04em;
   color: var(--muted);
+  margin-bottom: 4px;
 }
 
-.headline {
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: 2px;
+.comment {
+  white-space: pre-wrap;
+  font-size: 13.5px;
+  min-height: 1.3em;
 }
+
+.comment:empty::before {
+  content: "Add first-comment copy\\2026";
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ---- staging tools (ours, deliberately distinct from the LinkedIn look-alike) ---- */
 
 .actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  background: #f6f7f8;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.actions-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin-right: 2px;
 }
 
 .btn {
@@ -743,30 +932,5 @@ body {
   border-color: var(--line);
   color: var(--muted);
   margin-left: auto;
-}
-
-.comment-block {
-  border-top: 1px dashed var(--line);
-  padding-top: 10px;
-}
-
-.comment-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.comment {
-  white-space: pre-wrap;
-  font-size: 13.5px;
-  min-height: 1.3em;
-}
-
-.comment:empty::before {
-  content: "Add first-comment copy\\2026";
-  color: var(--muted);
-  font-style: italic;
 }
 `;

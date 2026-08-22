@@ -17,6 +17,9 @@ export interface Customer {
   people: string[];
 }
 
+// A staged post's story becomes an article share if this is ever wired up to LinkedIn's
+// Posts API directly: publicationUrl -> content.article.source, headline ->
+// content.article.title, image -> content.article.thumbnail.
 export interface Story {
   slug: string;
   headline: string;
@@ -35,10 +38,17 @@ export interface Post {
   storySlug: string;
   /** Person ids this staged post is written for. A post may be assigned to more than one person. */
   assignees: string[];
+  /** Maps to the `commentary` field of LinkedIn's Posts API if this is ever wired up for direct publishing. */
   body: string;
   firstComment?: string;
   /** Defaults to true. Set false to hide from the customer-facing view without deleting it. */
   live?: boolean;
+  /**
+   * Post audience. Mirrors LinkedIn Posts API's `visibility` enum exactly, so a value
+   * stored here can be passed straight through if direct publishing is added later.
+   * Defaults to "PUBLIC". Shown in the staged preview as the audience icon/label.
+   */
+  visibility?: "PUBLIC" | "CONNECTIONS" | "LOGGED_IN";
 }
 
 export interface StagerData {

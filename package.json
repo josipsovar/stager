@@ -8,6 +8,7 @@
     "build": "tsx src/build-standalone-stager.ts",
     "build:example": "tsx src/build-standalone-stager.ts data/example.json dist",
     "build:admin:example": "tsx src/build-admin.ts data/example.json dist/admin.html",
+    "new-client": "tsx src/new-client.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

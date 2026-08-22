@@ -9,17 +9,21 @@ no server, works from `file://`.
 ## How it works
 
 1. Author your data as JSON (see `data/example.json` for the schema: `customers`,
-   `people`, `stories`, `posts`). Story/avatar images can be local file paths
+   `people`, `stories`, `posts`), or scaffold a new client interactively with
+   `npm run new-client` (see below). Story/avatar images can be local file paths
    (inlined as base64 at build time) or already-hosted URLs.
 2. Run the generator. It emits **one HTML file per customer**, containing only
    that customer's people, stories, and posts — other customers' data is never
    included in the file at all (not just hidden by JS), so there's no way for
    one customer to see another's staged content.
 3. Send the customer their file (or host it). They pick their name from the
-   tabs, optionally filter by story, and use the "Copy post" / "Copy first
-   comment" / "Download image" buttons to stage their LinkedIn post. Post body
-   and comment text are rendered read-only in the page — edits happen natively
-   in LinkedIn after copying.
+   tabs, optionally filter by story, and see each staged post rendered as a
+   preview of the real LinkedIn post card (avatar, headline, audience,
+   article link preview, reaction icons). A separate "Staging tools" panel
+   below each preview has the "Copy post" / "Copy first comment" / "Download
+   image" buttons used to stage it on LinkedIn. Post body and comment text are
+   rendered read-only in the page — edits happen natively in LinkedIn after
+   copying.
 
 ## Commands
 
@@ -35,7 +39,20 @@ npx tsx src/build-standalone-stager.ts data/example.json dist/one-customer.html 
 
 # Build the admin curation view (all customers, with a live/hide toggle per post)
 npm run build:admin:example
+
+# Interactively scaffold a new client (customer + people + optional starter story/posts)
+npm run new-client -- data/example.json
 ```
+
+## Adding a new client
+
+`npm run new-client -- <data.json>` walks you through adding one client without
+hand-editing JSON: client name, its people (name + title, repeat as needed),
+and optionally a starter story with a set number of empty posts per person
+(matching the shape already used for the example clients). It appends the new
+entries to the given data file and prints the exact build command for that
+client's id when it's done. Fill in the empty post/comment bodies afterward,
+then build as usual.
 
 ## Admin view
 
@@ -58,6 +75,12 @@ See `src/types.ts`. Key relationships:
   publication, preview image, published date).
 - `post.live` — defaults to `true`. Set `false` to keep a draft out of the
   customer-facing build without deleting it.
+- `post.visibility` — `"PUBLIC"` (default), `"CONNECTIONS"`, or `"LOGGED_IN"`.
+  Mirrors LinkedIn's own Posts API `visibility` enum and drives the
+  audience icon/label shown in the preview, so a value stored here maps
+  directly onto that field if direct publishing via the API is ever added
+  (see `src/types.ts` for the other field mappings — this project only
+  generates copy/paste pages today, it doesn't call LinkedIn's API).
 
 ## Notes
 
