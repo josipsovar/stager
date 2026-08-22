@@ -1,0 +1,69 @@
+{
+  "customers": [
+    { "id": "northwind", "name": "Northwind Robotics", "people": ["jane-doe", "sam-lee"] },
+    { "id": "bluepeak", "name": "Bluepeak Health", "people": ["priya-nair"] }
+  ],
+  "people": [
+    { "id": "jane-doe", "name": "Jane Doe", "title": "CEO & Co-founder, Northwind Robotics" },
+    { "id": "sam-lee", "name": "Sam Lee", "title": "VP of Engineering, Northwind Robotics" },
+    { "id": "priya-nair", "name": "Priya Nair", "title": "CEO, Bluepeak Health" }
+  ],
+  "stories": [
+    {
+      "slug": "northwind-series-b",
+      "headline": "Northwind Robotics raises $40M Series B to automate warehouse picking",
+      "publicationUrl": "https://techcrunch.com/2026/08/10/northwind-robotics-series-b/",
+      "publicationDomain": "techcrunch.com",
+      "publishedAt": "2026-08-10",
+      "image": "images/northwind-story.svg"
+    },
+    {
+      "slug": "bluepeak-triage-pilot",
+      "headline": "Bluepeak Health's AI triage tool cuts ER wait times by 30% in pilot study",
+      "publicationUrl": "https://axios.com/2026/08/15/bluepeak-health-ai-triage-pilot",
+      "publicationDomain": "axios.com",
+      "publishedAt": "2026-08-15",
+      "image": "images/bluepeak-story.svg"
+    }
+  ],
+  "posts": [
+    {
+      "id": "jane-doe-series-b-1",
+      "storySlug": "northwind-series-b",
+      "assignees": ["jane-doe"],
+      "live": true,
+      "body": "Three years ago we started Northwind in a garage with one prototype arm and a very patient landlord.\n\nToday I'm proud to share we've closed a $40M Series B to keep building toward warehouses that run themselves — safely, efficiently, and with room for the humans who still do the parts robots shouldn't.\n\nHuge thanks to our team, our early customers who bet on us before we had a Series A logo to show for it, and our new investors for seeing where this is headed.",
+      "firstComment": "If you're a 3PL or DC operator curious about piloting this on your floor, my inbox is open — drop a comment or DM."
+    },
+    {
+      "id": "jane-doe-series-b-2",
+      "storySlug": "northwind-series-b",
+      "assignees": ["jane-doe"],
+      "live": true,
+      "body": "Raising money is never really the milestone — it's the fuel for the next one.\n\nWith this round we're doubling our engineering team and shipping our second-generation picking arm, the one we've been prototyping in stealth for the last 8 months.\n\nMore soon. For now: thank you to everyone who helped get us here."
+    },
+    {
+      "id": "sam-lee-series-b-1",
+      "storySlug": "northwind-series-b",
+      "assignees": ["sam-lee"],
+      "live": true,
+      "body": "Proud of this one. Our Series B isn't just a funding milestone — it's validation of an engineering bet we made two years ago: that picking accuracy and picking speed don't have to trade off against each other if you solve the perception problem first.\n\nExcited to keep scaling the team that made that bet pay off.",
+      "firstComment": "We're hiring perception and controls engineers — link in my profile if that's you."
+    },
+    {
+      "id": "priya-nair-triage-1",
+      "storySlug": "bluepeak-triage-pilot",
+      "assignees": ["priya-nair"],
+      "live": true,
+      "body": "When we started Bluepeak, the goal was simple to say and hard to do: get the sickest patients seen faster without asking already-stretched ER staff to do more with less.\n\nOur pilot results are in — a 30% reduction in wait times for high-acuity patients across three hospital systems, with zero missed critical cases. That last number matters more to me than the first.\n\nGrateful to our clinical partners for trusting us with something this important.",
+      "firstComment": "Full methodology and the independent review are linked in the article — happy to answer questions from anyone evaluating triage tools for their own system."
+    },
+    {
+      "id": "priya-nair-triage-2",
+      "storySlug": "bluepeak-triage-pilot",
+      "assignees": ["priya-nair"],
+      "live": false,
+      "body": "Draft variant — not yet approved for posting. Leaving here so it doesn't get lost, but please don't publish until legal signs off on the clinical claims language."
+    }
+  ]
+}

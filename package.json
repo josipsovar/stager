@@ -1,0 +1,19 @@
+{
+  "name": "linkedin-stager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Generates self-contained LinkedIn 'stager' pages: staged companion posts (with matching first comments and article preview images) that a customer's team can review and copy to LinkedIn after a story about them publishes.",
+  "scripts": {
+    "build": "tsx src/build-standalone-stager.ts",
+    "build:example": "tsx src/build-standalone-stager.ts data/example.json dist",
+    "build:admin:example": "tsx src/build-admin.ts data/example.json dist/admin.html",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "playwright-core": "^1.62.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
