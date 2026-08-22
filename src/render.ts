@@ -73,7 +73,7 @@ ${CSS}
 
 <template id="postCardTpl">
   <article class="card-wrap">
-    <div class="variant" hidden></div>
+    <div class="variant"></div>
     <div class="live-badge" hidden></div>
     <div class="li-card">
       <div class="li-head">
@@ -117,11 +117,15 @@ ${CSS}
       </div>
     </div>
     <div class="comment-block" hidden>
-      <div class="comment-label">First comment</div>
-      <div class="comment"></div>
+      <div class="avatar-wrap">
+        <div class="avatar avatar-sm"></div>
+      </div>
+      <div class="comment-bubble">
+        <div class="comment-label">First comment (post this right after)</div>
+        <div class="comment"></div>
+      </div>
     </div>
     <div class="actions">
-      <span class="actions-label">Staging tools</span>
       <button type="button" class="btn copy-post">Copy post</button>
       <button type="button" class="btn copy-comment" hidden>Copy first comment</button>
       <button type="button" class="btn download-img" hidden>Download image</button>
@@ -280,6 +284,12 @@ ${CSS}
     var edits = readEdits();
     var o = edits.posts && edits.posts[post.id];
     return o && typeof o.firstComment === "string" ? o.firstComment : post.firstComment || "";
+  }
+
+  function effectivePostAngle(post) {
+    var edits = readEdits();
+    var o = edits.posts && edits.posts[post.id];
+    return o && typeof o.angle === "string" ? o.angle : post.angle || "";
   }
 
   // ---- formatting -----------------------------------------------------
@@ -441,6 +451,18 @@ ${CSS}
     });
   }
 
+  // Single-line editable field (the version-title pill) — same idea as the comment, just trimmed.
+  // Reads textContent, not innerText: the pill is uppercased via CSS, and Chromium's innerText
+  // reflects that rendered transform rather than what was actually typed.
+  function setupEditableLabel(el, initialText, onSave) {
+    el.contentEditable = "true";
+    el.spellcheck = false;
+    el.textContent = initialText;
+    el.addEventListener("blur", function () {
+      onSave((el.textContent || "").replace(/\\u00a0/g, " ").trim());
+    });
+  }
+
   // ---- card rendering ---------------------------------------------------
 
   var tpl = document.getElementById("postCardTpl");
@@ -457,10 +479,9 @@ ${CSS}
     var story = storyIndex[post.storySlug];
 
     var variantEl = node.querySelector(".variant");
-    if (post.angle) {
-      variantEl.hidden = false;
-      variantEl.textContent = post.angle;
-    }
+    setupEditableLabel(variantEl, effectivePostAngle(post), function (text) {
+      setPostFieldOverride(post.id, "angle", text);
+    });
 
     var avatarWrap = node.querySelector(".avatar-wrap");
     avatarWrap.dataset.personId = person.id;
@@ -524,6 +545,9 @@ ${CSS}
     var commentBtn = node.querySelector(".copy-comment");
     var commentEl = commentBlock.querySelector(".comment");
     commentBlock.hidden = false;
+    var commentAvatarWrap = commentBlock.querySelector(".avatar-wrap");
+    commentAvatarWrap.dataset.personId = person.id;
+    fillAvatar(commentAvatarWrap.querySelector(".avatar"), person, effectiveAvatarSrc(person));
     setupEditableComment(commentEl, effectivePostComment(post), function (text) {
       setPostFieldOverride(post.id, "firstComment", text);
     });
@@ -869,6 +893,21 @@ body {
   background: #efe9ff;
   padding: 5px 10px;
   border-radius: 6px;
+  min-width: 2ch;
+  cursor: text;
+}
+
+.variant:hover { background: #e3d6fc; }
+
+.variant:focus {
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(91, 52, 214, .35);
+}
+
+.variant:empty::before {
+  content: "Add a version title\\2026";
+  color: #8a7bc2;
 }
 
 /* ---- the LinkedIn-look-alike post card itself ---- */
@@ -1107,10 +1146,31 @@ body {
 .live-badge.live { background: #e9f7ef; color: var(--ok); }
 .live-badge.dead { background: #fdeceb; color: #b3261e; }
 
-/* ---- first-comment slot ---- */
+/* ---- first-comment slot: styled like a reply, avatar + bubble ---- */
 
 .comment-block {
-  padding: 0 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: #f7f9fb;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.avatar-sm {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+
+.comment-bubble {
+  flex: 1;
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 12px;
 }
 
 .comment-label {
@@ -1154,15 +1214,6 @@ body {
   border: 1px dashed var(--line);
   border-radius: 8px;
   padding: 8px 10px;
-}
-
-.actions-label {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--muted);
-  margin-right: 2px;
 }
 
 .btn {

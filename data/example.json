@@ -1,12 +1,37 @@
 {
   "customers": [
-    { "id": "northwind", "name": "Northwind Robotics", "people": ["jane-doe", "sam-lee"] },
-    { "id": "bluepeak", "name": "Bluepeak Health", "people": ["priya-nair"] }
+    {
+      "id": "northwind",
+      "name": "Northwind Robotics",
+      "people": [
+        "jane-doe",
+        "sam-lee"
+      ]
+    },
+    {
+      "id": "bluepeak",
+      "name": "Bluepeak Health",
+      "people": [
+        "priya-nair"
+      ]
+    }
   ],
   "people": [
-    { "id": "jane-doe", "name": "Jane Doe", "title": "CEO & Co-founder, Northwind Robotics" },
-    { "id": "sam-lee", "name": "Sam Lee", "title": "VP of Engineering, Northwind Robotics" },
-    { "id": "priya-nair", "name": "Priya Nair", "title": "CEO, Bluepeak Health" }
+    {
+      "id": "jane-doe",
+      "name": "Jane Doe",
+      "title": "CEO & Co-founder, Northwind Robotics"
+    },
+    {
+      "id": "sam-lee",
+      "name": "Sam Lee",
+      "title": "VP of Engineering, Northwind Robotics"
+    },
+    {
+      "id": "priya-nair",
+      "name": "Priya Nair",
+      "title": "CEO, Bluepeak Health"
+    }
   ],
   "stories": [
     {
@@ -27,16 +52,104 @@
     }
   ],
   "posts": [
-    { "id": "jane-doe-1", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "angle": "Primary", "body": "", "firstComment": "" },
-    { "id": "jane-doe-2", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "angle": "Personal angle", "body": "", "firstComment": "" },
-    { "id": "jane-doe-3", "storySlug": "northwind-series-b", "assignees": ["jane-doe"], "live": true, "angle": "Data-driven", "body": "", "firstComment": "" },
-
-    { "id": "sam-lee-1", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "angle": "Primary", "body": "", "firstComment": "" },
-    { "id": "sam-lee-2", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "angle": "Personal angle", "body": "", "firstComment": "" },
-    { "id": "sam-lee-3", "storySlug": "northwind-series-b", "assignees": ["sam-lee"], "live": true, "angle": "Data-driven", "body": "", "firstComment": "" },
-
-    { "id": "priya-nair-1", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "angle": "Primary", "body": "", "firstComment": "" },
-    { "id": "priya-nair-2", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "angle": "Personal angle", "body": "", "firstComment": "" },
-    { "id": "priya-nair-3", "storySlug": "bluepeak-triage-pilot", "assignees": ["priya-nair"], "live": true, "angle": "Data-driven", "body": "", "firstComment": "" }
+    {
+      "id": "jane-doe-1",
+      "storySlug": "northwind-series-b",
+      "assignees": [
+        "jane-doe"
+      ],
+      "live": true,
+      "angle": "Title 1",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "jane-doe-2",
+      "storySlug": "northwind-series-b",
+      "assignees": [
+        "jane-doe"
+      ],
+      "live": true,
+      "angle": "Title 2",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "jane-doe-3",
+      "storySlug": "northwind-series-b",
+      "assignees": [
+        "jane-doe"
+      ],
+      "live": true,
+      "angle": "Title 3",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "sam-lee-1",
+      "storySlug": "northwind-series-b",
+      "assignees": [
+        "sam-lee"
+      ],
+      "live": true,
+      "angle": "Title 1",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "sam-lee-2",
+      "storySlug": "northwind-series-b",
+      "assignees": [
+        "sam-lee"
+      ],
+      "live": true,
+      "angle": "Title 2",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "sam-lee-3",
+      "storySlug": "northwind-series-b",
+      "assignees": [
+        "sam-lee"
+      ],
+      "live": true,
+      "angle": "Title 3",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "priya-nair-1",
+      "storySlug": "bluepeak-triage-pilot",
+      "assignees": [
+        "priya-nair"
+      ],
+      "live": true,
+      "angle": "Title 1",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "priya-nair-2",
+      "storySlug": "bluepeak-triage-pilot",
+      "assignees": [
+        "priya-nair"
+      ],
+      "live": true,
+      "angle": "Title 2",
+      "body": "",
+      "firstComment": ""
+    },
+    {
+      "id": "priya-nair-3",
+      "storySlug": "bluepeak-triage-pilot",
+      "assignees": [
+        "priya-nair"
+      ],
+      "live": true,
+      "angle": "Title 3",
+      "body": "",
+      "firstComment": ""
+    }
   ]
 }

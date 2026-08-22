@@ -118,7 +118,6 @@ async function main() {
 
       const postsPerPersonRaw = (await ask("  Starter (empty) posts per person [3]: ")).trim();
       const postsPerPerson = Number.isFinite(Number(postsPerPersonRaw)) && postsPerPersonRaw ? Number(postsPerPersonRaw) : 3;
-      const DEFAULT_ANGLES = ["Primary", "Personal angle", "Data-driven"];
       for (const person of newPeople) {
         for (let i = 1; i <= postsPerPerson; i++) {
           const post: Post = {
@@ -129,7 +128,7 @@ async function main() {
             body: "",
             firstComment: "",
           };
-          if (postsPerPerson > 1) post.angle = DEFAULT_ANGLES[i - 1] || `Version ${i}`;
+          if (postsPerPerson > 1) post.angle = `Title ${i}`;
           newPosts.push(post);
         }
       }
