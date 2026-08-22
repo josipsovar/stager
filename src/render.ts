@@ -151,7 +151,9 @@ ${CSS}
     if (!story) return body;
     if (body.indexOf(story.publicationUrl) !== -1) return body;
     var name = publicationNameFor(story);
-    return body.replace(/\\s+$/, "") + "\\n\\nRead the full piece on " + name + " here: " + story.publicationUrl;
+    var cta = "Read the full piece on " + name + " here: " + story.publicationUrl;
+    var trimmed = body.replace(/\\s+$/, "");
+    return trimmed ? trimmed + "\\n\\n" + cta : cta;
   }
 
   // ---- live/dead overlay (admin only; persisted per-browser) --------
@@ -204,9 +206,8 @@ ${CSS}
       .join("");
   }
 
-  function avatar(person) {
-    var el = document.createElement("div");
-    el.className = "avatar";
+  function fillAvatar(el, person) {
+    el.innerHTML = "";
     if (person.avatar) {
       var img = document.createElement("img");
       img.src = person.avatar;
@@ -215,7 +216,6 @@ ${CSS}
     } else {
       el.textContent = initials(person.name);
     }
-    return el;
   }
 
   // ---- clipboard / download -------------------------------------------
@@ -274,7 +274,7 @@ ${CSS}
     var node = tpl.content.firstElementChild.cloneNode(true);
     var story = storyIndex[post.storySlug];
 
-    node.querySelector(".card-head").insertBefore(avatar(person), node.querySelector(".who"));
+    fillAvatar(node.querySelector(".avatar"), person);
     node.querySelector(".name").textContent = person.name;
     node.querySelector(".title").textContent = person.title || "";
 
@@ -306,16 +306,17 @@ ${CSS}
       copyText(bodyText, e.currentTarget, "Post copied");
     });
 
+    // First comment field always renders (even empty) so it's visible as a
+    // slot to fill in — post copy is never invented on the customer's behalf.
     var commentBlock = node.querySelector(".comment-block");
     var commentBtn = node.querySelector(".copy-comment");
-    if (post.firstComment) {
-      commentBlock.hidden = false;
-      commentBlock.querySelector(".comment").textContent = post.firstComment;
-      commentBtn.hidden = false;
-      commentBtn.addEventListener("click", function (e) {
-        copyText(post.firstComment, e.currentTarget, "Comment copied");
-      });
-    }
+    var commentText = post.firstComment || "";
+    commentBlock.hidden = false;
+    commentBlock.querySelector(".comment").textContent = commentText;
+    commentBtn.hidden = false;
+    commentBtn.addEventListener("click", function (e) {
+      copyText(commentText, e.currentTarget, "Comment copied");
+    });
 
     var downloadBtn = node.querySelector(".download-img");
     if (story && story.image) {
@@ -671,6 +672,13 @@ body {
   white-space: pre-wrap;
   font-size: 14px;
   line-height: 1.5;
+  min-height: 1.5em;
+}
+
+.body:empty::before {
+  content: "Add post copy\\2026";
+  color: var(--muted);
+  font-style: italic;
 }
 
 .preview {
@@ -753,5 +761,12 @@ body {
 .comment {
   white-space: pre-wrap;
   font-size: 13.5px;
+  min-height: 1.3em;
+}
+
+.comment:empty::before {
+  content: "Add first-comment copy\\2026";
+  color: var(--muted);
+  font-style: italic;
 }
 `;
